@@ -14,16 +14,20 @@ public class Paper {
     private int ID;
     private String DOI;
     private Set<String> citationDOI;
+    private String title;
     private String author;
     private String organization;
     private List<String> orgList= new ArrayList<>();
+    private List<String> referenceList = new ArrayList<>();
     private int year;
 
     public Paper() {
         DOI = "";
+        title = "";
         author = "";
         organization = "";
         orgList = new ArrayList<>();
+        referenceList = new ArrayList<>();
     }
 
     public Paper(JSONObject jsonObject, int index) throws JSONException {
@@ -39,6 +43,23 @@ public class Paper {
                 }
             }
         }
+        if (jsonObject.has("CR")) {
+            String[] citedLines = jsonObject.get("CR").toString().split("\\|\\|");
+
+            for (String line : citedLines) {
+                referenceList.add(line);
+            }
+        }
+        if (!jsonObject.isNull("TI")) {
+            String[] citedLines = jsonObject.get("TI").toString().split("\\|\\|");
+            String titles = "";
+            for (String line : citedLines) {
+                titles = titles + line + " ";
+            }
+
+            title = titles.trim();
+        }
+
         if (!jsonObject.isNull("DI")) {
             DOI = jsonObject.get("DI").toString();
         }
@@ -97,5 +118,13 @@ public class Paper {
 
     public int getYear() {
         return year;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public List<String> getReferenceList() {
+        return referenceList;
     }
 }

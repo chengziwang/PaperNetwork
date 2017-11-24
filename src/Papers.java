@@ -30,7 +30,7 @@ public class Papers {
     Map<String, Integer> classCount;
     List<Map.Entry<String, Integer>> infoIds;///
     private static int top = 50;//请修改对应的数目
-    private static int startyear = 2008;
+    private static int startyear = 1980;
     private static int endyear = 2017;
     Map<String, Integer> hashMap = new HashMap<String, Integer>();//机构对应文章数
 
@@ -594,6 +594,70 @@ public class Papers {
         System.out.println("输出被引用");
     }
 
+    class ConPaper {
+        String name;
+        Map<String, Integer> conciting;
+        public ConPaper() {
+            name = "";
+            conciting = new HashMap<>();
+        }
+    }
+
+    public void ConCiting() {
+        //生成共引矩阵
+        List<ConPaper> conPaperList = new ArrayList<>();
+        for (int i = 0; i < paperList.size(); i++) {
+
+            for (int j = 0; j < paperList.size(); j++) {
+                ConPaper conPaper = new ConPaper();
+                int a = 0;
+                for (int k = 0; k < paperList.get(i).getReferenceList().size(); k++) {
+                    for (int l = 0; l < paperList.get(j).getReferenceList().size(); l++) {
+                        if (paperList.get(i).getReferenceList().get(k) .equals(paperList.get(j).getReferenceList().get(l)) ) {
+                            a = a + 1;
+                        }
+                    }
+                }
+                conPaper.name = paperList.get(i).getTitle();
+                conPaper.conciting.put(paperList.get(j).getTitle(),a);
+                conPaperList.add(conPaper);
+            }
+        }
+        //写入共引
+        try {
+            //The following three lines are written to the Excel initialization operation
+            OutputStream os = new FileOutputStream(filePath + "conciting-DI .xlsx");
+            SXSSFWorkbook wb = new SXSSFWorkbook();
+            SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("conciting");
+            SXSSFRow row;
+            row = (SXSSFRow) sheet.createRow(0);
+            int paperListLen = paperList.size();
+            int top = 100;
+            for (int q = 0; q < paperListLen; q++) {
+                row.createCell(q + 1).setCellValue(paperList.get(q).getID());
+            }
+            for (int j = 0; j < paperListLen; j++) {
+                row = (SXSSFRow) sheet.createRow(j + 1);
+                row.createCell(0).setCellValue(paperList.get(j).getID());
+                for (int q = 0; q < paperListLen; q++) {
+                    for (int i = 0; i < conPaperList.size(); i++) {
+                        if (conPaperList.get(i).name.equals(paperList.get(j).getTitle()) ) {
+                            for (Map.Entry<String, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
+                                if (entryt.getKey().equals(paperList.get(q).getTitle()) ) {
+                                    row.createCell(q+1 ).setCellValue(entryt.getValue());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            wb.write(os);
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public void run() {
@@ -602,10 +666,11 @@ public class Papers {
         SortWrite();
         SortWriteTop();
 //        OrganizationCiting();
-        getaimOranization();
-        aimORGpaperscnt();
+//        getaimOranization();
+//        aimORGpaperscnt();
+        ConCiting();
 
-        AllOrganizationCiting();
+//        AllOrganizationCiting();
     }
 
 
