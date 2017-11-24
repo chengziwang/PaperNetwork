@@ -69,7 +69,7 @@ public class Papers {
                             jsonObject = new JSONObject();//reset jsonObject
                         }
                         content = new StringBuilder(lineText);
-                        if (lineText.startsWith("ER") && jsonObject.has("DI")) {//ER文件结束
+                        if (lineText.startsWith("ER") /*&& jsonObject.has("DI")*/) {//ER文件结束
                             jsonObject.put("classID", i);//按文件排名分类0-N
                             jsonObject.put("ID", Integer.toString(paperList.size()));
                             paperList.add(new Paper(jsonObject, papersJson.size()));
@@ -658,19 +658,38 @@ public class Papers {
         }
     }
 
+    //提取摘要和题目
+    public void WriteAbstract() {
+        try {
+
+            for (int i = 0; i < paperList.size(); i++) {
+                BufferedWriter bw = new BufferedWriter(new FileWriter(filePath + i));
+                bw.write(paperList.get(i).getTitle());
+                bw.write("\n"+paperList.get(i).getAbstracts());
+                bw.flush();
+                bw.close();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 
     public void run() {
         readPapers(originalData);
 
-        SortWrite();
-        SortWriteTop();
+//        SortWrite();
+//        SortWriteTop();
 //        OrganizationCiting();
 //        getaimOranization();
 //        aimORGpaperscnt();
-        ConCiting();
+//        ConCiting();
 
 //        AllOrganizationCiting();
+        WriteAbstract();
     }
 
 

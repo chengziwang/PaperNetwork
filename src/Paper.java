@@ -20,6 +20,7 @@ public class Paper {
     private List<String> orgList= new ArrayList<>();
     private List<String> referenceList = new ArrayList<>();
     private int year;
+    private String abstracts;
 
     public Paper() {
         DOI = "";
@@ -28,6 +29,7 @@ public class Paper {
         organization = "";
         orgList = new ArrayList<>();
         referenceList = new ArrayList<>();
+        abstracts = "";
     }
 
     public Paper(JSONObject jsonObject, int index) throws JSONException {
@@ -50,13 +52,20 @@ public class Paper {
                 referenceList.add(line);
             }
         }
+        if (!jsonObject.isNull("AB")) {
+            String[] citedLines = jsonObject.get("AB").toString().split("\\|\\|");
+            String titles = "";
+            for (String line : citedLines) {
+                titles = titles + line + " ";
+            }
+            abstracts = titles.trim();
+        }
         if (!jsonObject.isNull("TI")) {
             String[] citedLines = jsonObject.get("TI").toString().split("\\|\\|");
             String titles = "";
             for (String line : citedLines) {
                 titles = titles + line + " ";
             }
-
             title = titles.trim();
         }
 
@@ -81,7 +90,6 @@ public class Paper {
                     if (organization!=null&&!orgList.contains(organization)){
                         orgList.add(organization);
                     }
-
                 }
             }
         }
@@ -126,5 +134,9 @@ public class Paper {
 
     public List<String> getReferenceList() {
         return referenceList;
+    }
+
+    public String getAbstracts() {
+        return abstracts;
     }
 }
