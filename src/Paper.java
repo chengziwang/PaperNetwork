@@ -21,6 +21,9 @@ public class Paper {
     private List<String> referenceList = new ArrayList<>();
     private int year;
     private String abstracts;
+    private String classID;
+    private String SO;
+    private String z9;
 
     public Paper() {
         DOI = "";
@@ -30,6 +33,9 @@ public class Paper {
         orgList = new ArrayList<>();
         referenceList = new ArrayList<>();
         abstracts = "";
+        classID = "";
+        SO = "0";
+        z9 = "0";
     }
 
     public Paper(JSONObject jsonObject, int index) throws JSONException {
@@ -71,6 +77,22 @@ public class Paper {
 
         if (!jsonObject.isNull("DI")) {
             DOI = jsonObject.get("DI").toString();
+        }
+
+        if (!jsonObject.isNull("SO")) {
+            DOI = jsonObject.get("SO").toString();
+        }
+
+        if (!jsonObject.isNull("z9")) {
+            DOI = jsonObject.get("Z9").toString();
+        }
+
+        if (!jsonObject.isNull("ID")) {
+            ID = Integer.parseInt(jsonObject.get("ID").toString());
+        }
+
+        if (!jsonObject.isNull("classID")) {
+            classID = jsonObject.get("classID").toString();
         }
         if (!jsonObject.isNull("PY")) {
             year = Integer.parseInt(jsonObject.get("PY").toString());
@@ -138,5 +160,17 @@ public class Paper {
 
     public String getAbstracts() {
         return abstracts;
+    }
+
+    public String getClassID() {
+        return classID;
+    }
+
+    public String getSO() {
+        return SO;
+    }
+
+    public String getZ9() {
+        return z9;
     }
 }

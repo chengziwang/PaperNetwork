@@ -1,4 +1,18 @@
+import Config.PathConfig;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static Config.PathConfig.filePath;
 
@@ -18,6 +32,16 @@ public class Main {
         //czwdataprocess
         Papers papers = new Papers();
 
-        papers.run();
+        try {
+            papers.run();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
+
+
+
 }

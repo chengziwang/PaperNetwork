@@ -4,6 +4,10 @@ import Config.PathConfig;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,6 +24,7 @@ import static Config.PathConfig.originalData;
 public class Papers {
     private Map<Integer, List<Integer>> citedPaperIndex;
     Map<Map.Entry<String, String>, Integer> organizationCitingMap;
+    private List<JSONObject> documentObjectList;
     private List<JSONObject> papersJson;
     private List<Paper> paperList;
     private List<String> DIOList;
@@ -33,6 +38,7 @@ public class Papers {
     private static int startyear = 1980;
     private static int endyear = 2017;
     Map<String, Integer> hashMap = new HashMap<String, Integer>();//机构对应文章数
+    private  List<ConPaper> conPaperList;
 
 
     public Papers() {
@@ -46,6 +52,16 @@ public class Papers {
         maxClass = 0;
         classCount = new HashMap<>();
         organizationCitingMap = new HashMap<>();
+        conPaperList = new ArrayList<>();
+        documentObjectList = new ArrayList<>();
+    }
+
+    public List<ConPaper> getConPaperList() {
+        return conPaperList;
+    }
+
+    public List<JSONObject> getDocumentObjectList() {
+        return documentObjectList;
     }
 
     private void readPapers(String path) {
@@ -69,11 +85,12 @@ public class Papers {
                             jsonObject = new JSONObject();//reset jsonObject
                         }
                         content = new StringBuilder(lineText);
-                        if (lineText.startsWith("ER") /*&& jsonObject.has("DI")*/) {//ER文件结束
+                        if (lineText.startsWith("ER") && jsonObject.has("DI")) {//ER文件结束
                             jsonObject.put("classID", i);//按文件排名分类0-N
                             jsonObject.put("ID", Integer.toString(paperList.size()));
                             paperList.add(new Paper(jsonObject, papersJson.size()));
                             papersJson.add(jsonObject);
+                            documentObjectList.add(jsonObject);
                         }
                     } else if (lineText.startsWith("  ")) {
                         content.append("||");
@@ -595,19 +612,18 @@ public class Papers {
     }
 
     class ConPaper {
-        String name;
-        Map<String, Integer> conciting;
+        Paper name;
+        Map<Paper, Integer> conciting;
         public ConPaper() {
-            name = "";
+            name = new Paper();
             conciting = new HashMap<>();
         }
     }
 
+
     public void ConCiting() {
         //生成共引矩阵
-        List<ConPaper> conPaperList = new ArrayList<>();
         for (int i = 0; i < paperList.size(); i++) {
-
             for (int j = 0; j < paperList.size(); j++) {
                 ConPaper conPaper = new ConPaper();
                 int a = 0;
@@ -618,8 +634,8 @@ public class Papers {
                         }
                     }
                 }
-                conPaper.name = paperList.get(i).getTitle();
-                conPaper.conciting.put(paperList.get(j).getTitle(),a);
+                conPaper.name = paperList.get(i);
+                conPaper.conciting.put(paperList.get(j),a);
                 conPaperList.add(conPaper);
             }
         }
@@ -642,7 +658,7 @@ public class Papers {
                 for (int q = 0; q < paperListLen; q++) {
                     for (int i = 0; i < conPaperList.size(); i++) {
                         if (conPaperList.get(i).name.equals(paperList.get(j).getTitle()) ) {
-                            for (Map.Entry<String, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
+                            for (Map.Entry<Paper, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
                                 if (entryt.getKey().equals(paperList.get(q).getTitle()) ) {
                                     row.createCell(q+1 ).setCellValue(entryt.getValue());
                                 }
@@ -675,10 +691,59 @@ public class Papers {
         }
     }
 
+    //输出XML
+
+    public void buildXMLDocCopy() throws IOException, JSONException {
+
+        Element root = new Element("graph").setAttribute("directed", "0");
+        Document document = new Document(root);
+        List<String> attribute;
+        attribute = new ArrayList<>(Arrays.asList("classID", "TI", "SO", "PY", "Z9"));
+
+        for (int i = 0; i < paperList.size(); i++) {
+            Element elements = new Element("node").setAttribute("id", Integer.toString(paperList.get(i).getID()));
+            Element element = new Element("att").setAttribute("name", "name");
+            element.setAttribute("value", Integer.toString(paperList.get(i).getID()));
+            elements.addContent(element);
+//            Element att = new Element("att").setAttribute("name", "classID");
+//            att.setAttribute("value", conPaperList.get(i).name.getClassID());
+//            elements.addContent(att);
+            Element att0 = new Element("att").setAttribute("name", "TI");
+            att0.setAttribute("value", paperList.get(i).getTitle());
+            elements.addContent(att0);
+//            Element att1 = new Element("att").setAttribute("name", attribute.get(2));
+//            att1.setAttribute("value", paperList.get(i).getSO());
+//            elements.addContent(att1);
+            Element att2 = new Element("att").setAttribute("name", "PY");
+            att2.setAttribute("value", Integer.toString(paperList.get(i).getYear()));
+            elements.addContent(att2);
+//            Element att3 = new Element("att").setAttribute("name", attribute.get(4));
+//            att3.setAttribute("value", paperList.get(i).getZ9());
+//            elements.addContent(att3);
+            root.addContent(elements);
+        }
+
+        for (int i = 0; i < conPaperList.size(); i++) {
+            for (Map.Entry<Paper, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
+                if (entryt.getValue() != 0){
+                Element elements = new Element("edge").setAttribute("source", Integer.toString(conPaperList.get(i).name.getID()));
+
+                elements.setAttribute("target", Integer.toString(entryt.getKey().getID()));
+                root.addContent(elements);
+                elements.addContent("");
+                }
+
+                }
+        }
+
+        Format format = Format.getPrettyFormat();
+        XMLOutputter XMLOut = new XMLOutputter(format);
+        XMLOut.output(document, new FileOutputStream(PathConfig.refRelationship));
+    }
 
 
 
-    public void run() {
+    public void run() throws IOException, JSONException {
         readPapers(originalData);
 
 //        SortWrite();
@@ -686,10 +751,11 @@ public class Papers {
 //        OrganizationCiting();
 //        getaimOranization();
 //        aimORGpaperscnt();
-//        ConCiting();
+       ConCiting();
 
 //        AllOrganizationCiting();
         WriteAbstract();
+        buildXMLDocCopy();
     }
 
 
