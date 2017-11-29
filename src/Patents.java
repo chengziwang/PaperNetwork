@@ -1,6 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static Config.PathConfig.filePath;
 
@@ -42,8 +41,9 @@ public class Patents {
 
                     if (wordFlag[0].equals("py")) {
                         int ll = lineCurrent.length();
-                        if (wordFlag.length>1)
+                        if (wordFlag.length>1) {
                             patent.setPatentYear(Integer.parseInt(lineCurrent.substring(6).trim()));
+                        }
                     }
                     if (wordFlag[0].equals("abd")) {//read paper file
                         flag = true;
@@ -65,7 +65,7 @@ public class Patents {
         }
         return patentList;
     }
-
+//按照专利名字输出每个专利，并以专利号命名txt文件
     public void CountryWrite(){
 
         try {
@@ -81,12 +81,16 @@ public class Patents {
         }
 
     }
+
+
     public void Run (){
         File files = new File(filePath);
-        if (!files.exists())
+        if (!files.exists()) {
             files.mkdirs();
-        for (File file : files.listFiles())
+        }
+        for (File file : files.listFiles()) {
             file.delete();
+        }
         String inputFilePath = "Data/20171127/";
 
         DataRead(inputFilePath);

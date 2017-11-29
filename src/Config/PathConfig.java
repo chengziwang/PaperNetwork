@@ -5,8 +5,8 @@ package Config;
  */
 public class PathConfig {
 
-    public static String originalData="Data/1_all";//czw
-    public static String filePath = "Data/Output1127/";
+    public static String originalData="Data/20171127";//czw
+    public static String filePath = "Data/Output1129/";
     public static String DOIFile="Data/Results/DOIFile.txt";
     public static String refRelationship="Data/Results/refRelationship.xml";
     public static String classPath="Data/Class/";

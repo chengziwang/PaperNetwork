@@ -122,6 +122,7 @@ public class Papers {
         }
         infoIds = new ArrayList<Map.Entry<String, Integer>>(hashMap.entrySet());
         Collections.sort(infoIds, new Comparator<Map.Entry<String, Integer>>() {//sort
+            @Override
             public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
                 return (o2.getValue() - o1.getValue());
             }
@@ -157,8 +158,9 @@ public class Papers {
                     for (int j = 0; j < paperList.get(i).getOrgList().size(); j++) {
                         for (int k = 0; k < 100; k++) {//czw
                             String[] s1 = infoIds.get(k).toString().split("=");
-                            if (paperList.get(i).getOrgList().get(j).equals(s1[0]))
+                            if (paperList.get(i).getOrgList().get(j).equals(s1[0])) {
                                 organizationList.add(paperList.get(i).getOrgList().get(j));
+                            }
                         }
                     }
                 }
@@ -205,8 +207,9 @@ public class Papers {
                 for (int j = 0; j < paperList.get(i).getOrgList().size(); j++) {
                     for (int k = 0; k < top; k++) {//czw
                         String[] s1 = infoIds.get(k).toString().split("=");
-                        if (paperList.get(i).getOrgList().get(j).equals(s1[0]))
+                        if (paperList.get(i).getOrgList().get(j).equals(s1[0])) {
                             organizationList.add(paperList.get(i).getOrgList().get(j));
+                        }
                     }
                 }
             }
@@ -229,7 +232,9 @@ public class Papers {
                 row.createCell(0).setCellValue(s[0]);
                 if (hashMap.get(s[0])!=null) {
                     row.createCell(1).setCellValue(hashMap.get(s[0]));
-                }else row.createCell(1).setCellValue((Integer)0);
+                }else {
+                    row.createCell(1).setCellValue((Integer)0);
+                }
 
             }
 
@@ -353,7 +358,9 @@ public class Papers {
                         while ((lineTxt = br.readLine()) != null) {
                             if (hashMap.containsKey(lineTxt)) {
                                 map.put(lineTxt, hashMap.get(lineTxt));
-                            } else System.out.println("现有机构集合中无：" + lineTxt);
+                            } else {
+                                System.out.println("现有机构集合中无：" + lineTxt);
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -692,7 +699,6 @@ public class Papers {
     }
 
     //输出XML
-
     public void buildXMLDocCopy() throws IOException, JSONException {
 
         Element root = new Element("graph").setAttribute("directed", "0");
@@ -741,6 +747,94 @@ public class Papers {
         XMLOut.output(document, new FileOutputStream(PathConfig.refRelationship));
     }
 
+    public class Country2Country {
+        private String name;
+        private HashMap<String,Integer> countryCiting;
+
+        public Country2Country(){
+            name = "";
+            countryCiting = new HashMap<>();
+        }
+    }
+
+    public void countryCiting(){
+        Set<String> countrySet = new HashSet<>();
+        List<Country2Country> country2CountryList = new ArrayList<>();
+        for (int i = 0; i < paperList.size(); i++) {
+            if (paperList.get(i).getCountry()!=null) {
+                countrySet.add(paperList.get(i).getCountry());
+            }
+        }
+        List<String> countryList = new ArrayList<>();
+        countryList.addAll(countrySet);
+        for (int i = 0; i < countryList.size(); i++) {
+            int countryCitingCount = 0;
+            for (int j = 0; j < countryList.size(); j++) {
+
+                for (int k = 0; k < paperList.size(); k++) {
+                    int paperCitingCount = 0;
+
+                    if (paperList.get(k).getCountry()!= null&&paperList.get(k).getCountry().equals(countryList.get(i))){
+                            for (int m = 0; m < paperList.size(); m++) {
+                                if (paperList.get(m).getCountry()!=null&&paperList.get(m).getCountry().equals(countryList.get(j))
+                                                &&paperList.get(k).getCitationDOI().contains(paperList.get(m).getDOI())){
+                                    paperCitingCount = paperCitingCount+1;
+                                }
+
+
+                            }
+                        countryCitingCount = countryCitingCount + paperCitingCount;
+
+
+                    }
+
+
+                }
+                Country2Country c2c = new Country2Country();
+                c2c.name = countryList.get(i);
+                c2c.countryCiting.put(countryList.get(j),countryCitingCount);
+                country2CountryList.add(c2c);
+
+            }
+        }
+
+        //写入引用
+        try {
+            //The following three lines are written to the Excel initialization operation
+            OutputStream os = new FileOutputStream(filePath + "countryciting .xlsx");
+            SXSSFWorkbook wb = new SXSSFWorkbook();
+            SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("conciting");
+            SXSSFRow row;
+            row = (SXSSFRow) sheet.createRow(0);
+            int paperListLen = countryList.size();
+            int top = 100;
+            for (int q = 0; q < paperListLen; q++) {
+                row.createCell(q +1).setCellValue(countryList.get(q));
+            }
+            for (int j = 0; j < paperListLen; j++) {
+                row = (SXSSFRow) sheet.createRow(j+1 );
+                row.createCell(0).setCellValue(countryList.get(j));
+                for (int q = 0; q < paperListLen; q++) {
+                    for (int i = 0; i < country2CountryList.size(); i++) {
+                        if (country2CountryList.get(i).name!=null&&country2CountryList.get(i).name.equals(countryList.get(j)) ) {
+                            for (Map.Entry<String, Integer> entryt : country2CountryList.get(i).countryCiting.entrySet()) {
+                                if (entryt.getKey()!=null&&entryt.getKey().equals(countryList.get(q)) ) {
+                                    row.createCell(q+1 ).setCellValue(entryt.getValue());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            wb.write(os);
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
 
 
     public void run() throws IOException, JSONException {
@@ -751,11 +845,12 @@ public class Papers {
 //        OrganizationCiting();
 //        getaimOranization();
 //        aimORGpaperscnt();
-       ConCiting();
+//       ConCiting();
 
 //        AllOrganizationCiting();
-        WriteAbstract();
-        buildXMLDocCopy();
+//        WriteAbstract();
+//        buildXMLDocCopy();
+        countryCiting();
     }
 
 
@@ -767,60 +862,66 @@ public class Papers {
         File classFile = new File(classPath);
         if (!classFile.exists()) {
             System.out.println("file" + "\"" + classFile + "\"" + "is not exist!");
-        } else try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(classFile)));
-            String classID;
-            while ((classID = bufferedReader.readLine()) != null) {
-                String[] indexAndClass = classID.split("\t");
-                if (indexAndClass.length > 1) {
-                    if (classCount.containsKey(indexAndClass[1].trim())) {
-                        classCount.put(indexAndClass[1].trim(), classCount.get(indexAndClass[1].trim()) + 1);
-                    } else {
-                        classCount.put(indexAndClass[1].trim(), 1);
-                    }
-                    maxClass = Math.max(Integer.parseInt(indexAndClass[1].trim()), maxClass);
-                    fileClass.put(indexAndClass[0].trim(), indexAndClass[1].trim());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        else {
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(classFile)));
+                String classID;
+                while ((classID = bufferedReader.readLine()) != null) {
+                    String[] indexAndClass = classID.split("\t");
+                    if (indexAndClass.length > 1) {
+                        if (classCount.containsKey(indexAndClass[1].trim())) {
+                            classCount.put(indexAndClass[1].trim(), classCount.get(indexAndClass[1].trim()) + 1);
+                        } else {
+                            classCount.put(indexAndClass[1].trim(), 1);
+                        }
+                        maxClass = Math.max(Integer.parseInt(indexAndClass[1].trim()), maxClass);
+                        fileClass.put(indexAndClass[0].trim(), indexAndClass[1].trim());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
         //readPapers(paperPath);
         for (String fileName : fileClass.keySet()) {
             File file = new File(paperPath + fileName + ".txt");
-
             if (!file.exists()) {
                 System.out.println("file" + "\"" + file + "\"" + "is not exist!");
-            } else try {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                String lineText;
-                JSONObject jsonObject = new JSONObject();
-                StringBuilder content = new StringBuilder();
-                while ((lineText = bufferedReader.readLine()) != null) {
-                    if (!lineText.startsWith("  ") && lineText != "" && !lineText.startsWith("FN") && !lineText.startsWith("VR")) {
-                        if (content.length() > 2) {
-                            jsonObject.put(content.toString().substring(0, 2), content.toString().substring(3));
+            } else {
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+                    String lineText;
+                    JSONObject jsonObject = new JSONObject();
+                    StringBuilder content = new StringBuilder();
+                    while ((lineText = bufferedReader.readLine()) != null) {
+                        if (!lineText.startsWith("  ") && lineText != "" && !lineText.startsWith("FN") && !lineText.startsWith("VR")) {
+                            if (content.length() > 2) {
+                                jsonObject.put(content.toString().substring(0, 2), content.toString().substring(3));
+                            }
+                            if (lineText.startsWith("PT")) {
+                                jsonObject = new JSONObject();
+                            }
+                            content = new StringBuilder(lineText);
+                            if (lineText.startsWith("ER") && jsonObject.has("DI")) {
+                                paperList.add(new Paper(jsonObject, papersJson.size()));
+                                jsonObject.put("ID", fileName);
+                                jsonObject.put("classID", fileClass.get(fileName));
+                                papersJson.add(jsonObject);
+                            }
+                        } else if (lineText.startsWith("  ")) {
+                            content.append("||");
+                            content.append(lineText.trim());
                         }
-                        if (lineText.startsWith("PT")) {
-                            jsonObject = new JSONObject();
-                        }
-                        content = new StringBuilder(lineText);
-                        if (lineText.startsWith("ER") && jsonObject.has("DI")) {
-                            paperList.add(new Paper(jsonObject, papersJson.size()));
-                            jsonObject.put("ID", fileName);
-                            jsonObject.put("classID", fileClass.get(fileName));
-                            papersJson.add(jsonObject);
-                        }
-                    } else if (lineText.startsWith("  ")) {
-                        content.append("||");
-                        content.append(lineText.trim());
                     }
-                }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
         /**

@@ -24,6 +24,7 @@ public class Paper {
     private String classID;
     private String SO;
     private String z9;
+    private String country;
 
     public Paper() {
         DOI = "";
@@ -80,11 +81,11 @@ public class Paper {
         }
 
         if (!jsonObject.isNull("SO")) {
-            DOI = jsonObject.get("SO").toString();
+            SO = jsonObject.get("SO").toString();
         }
 
         if (!jsonObject.isNull("z9")) {
-            DOI = jsonObject.get("Z9").toString();
+            z9 = jsonObject.get("Z9").toString();
         }
 
         if (!jsonObject.isNull("ID")) {
@@ -114,6 +115,12 @@ public class Paper {
                     }
                 }
             }
+        }
+
+        if (!jsonObject.isNull("RP")) {
+            String[] words = jsonObject.get("RP").toString().split(", |\\.");
+            String[] countrySplit = words[words.length - 1].split(" ");
+            country = countrySplit[countrySplit.length - 1];
         }
     }
 
@@ -172,5 +179,9 @@ public class Paper {
 
     public String getZ9() {
         return z9;
+    }
+
+    public String getCountry() {
+        return country;
     }
 }

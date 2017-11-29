@@ -22,10 +22,13 @@ import static Config.PathConfig.filePath;
 public class Main {
     public static void main(String[] args) {
         File files = new File(filePath);
-        if (!files.exists())
+        if (!files.exists()){
             files.mkdirs();
-        for (File file : files.listFiles())
+        }
+
+        for (File file : files.listFiles()) {
             file.delete();
+        }
         //czwddataprocess
         DataProcess dataProcess = new DataProcess();
         dataProcess.readRuleFile();
