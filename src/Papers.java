@@ -704,42 +704,33 @@ public class Papers {
         Element root = new Element("graph").setAttribute("directed", "0");
         Document document = new Document(root);
         List<String> attribute;
-        attribute = new ArrayList<>(Arrays.asList("classID", "TI", "SO", "PY", "Z9"));
+        attribute = new ArrayList<>(Arrays.asList("classID", "TI", "SO", "PY", "Z9","AB"));
 
         for (int i = 0; i < paperList.size(); i++) {
             Element elements = new Element("node").setAttribute("id", Integer.toString(paperList.get(i).getID()));
             Element element = new Element("att").setAttribute("name", "name");
             element.setAttribute("value", Integer.toString(paperList.get(i).getID()));
             elements.addContent(element);
-//            Element att = new Element("att").setAttribute("name", "classID");
-//            att.setAttribute("value", conPaperList.get(i).name.getClassID());
-//            elements.addContent(att);
-            Element att0 = new Element("att").setAttribute("name", "TI");
-            att0.setAttribute("value", paperList.get(i).getTitle());
-            elements.addContent(att0);
-//            Element att1 = new Element("att").setAttribute("name", attribute.get(2));
-//            att1.setAttribute("value", paperList.get(i).getSO());
-//            elements.addContent(att1);
-            Element att2 = new Element("att").setAttribute("name", "PY");
-            att2.setAttribute("value", Integer.toString(paperList.get(i).getYear()));
-            elements.addContent(att2);
-//            Element att3 = new Element("att").setAttribute("name", attribute.get(4));
-//            att3.setAttribute("value", paperList.get(i).getZ9());
-//            elements.addContent(att3);
+            for (int j = 0; j < attribute.size(); j++) {
+                if (documentObjectList.get(i).has(attribute.get(j))) {
+                    Element att = new Element("att").setAttribute("name", attribute.get(j));
+                    att.setAttribute("value", documentObjectList.get(i).get(attribute.get(j)).toString().replace("||", " "));
+                    elements.addContent(att);
+                }
+            }
             root.addContent(elements);
         }
 
         for (int i = 0; i < conPaperList.size(); i++) {
             for (Map.Entry<Paper, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
                 if (entryt.getValue() != 0){
-                Element elements = new Element("edge").setAttribute("source", Integer.toString(conPaperList.get(i).name.getID()));
+                    Element elements = new Element("edge").setAttribute("source", Integer.toString(conPaperList.get(i).name.getID()));
 
-                elements.setAttribute("target", Integer.toString(entryt.getKey().getID()));
-                root.addContent(elements);
-                elements.addContent("");
+                    elements.setAttribute("target", Integer.toString(entryt.getKey().getID()));
+                    root.addContent(elements);
+                    elements.addContent("");
                 }
-
-                }
+            }
         }
 
         Format format = Format.getPrettyFormat();
@@ -768,33 +759,25 @@ public class Papers {
         List<String> countryList = new ArrayList<>();
         countryList.addAll(countrySet);
         for (int i = 0; i < countryList.size(); i++) {
-            int countryCitingCount = 0;
-            for (int j = 0; j < countryList.size(); j++) {
 
+            for (int j = 0; j < countryList.size(); j++) {
+                int countryCitingCount = 0;
                 for (int k = 0; k < paperList.size(); k++) {
                     int paperCitingCount = 0;
-
                     if (paperList.get(k).getCountry()!= null&&paperList.get(k).getCountry().equals(countryList.get(i))){
                             for (int m = 0; m < paperList.size(); m++) {
                                 if (paperList.get(m).getCountry()!=null&&paperList.get(m).getCountry().equals(countryList.get(j))
                                                 &&paperList.get(k).getCitationDOI().contains(paperList.get(m).getDOI())){
                                     paperCitingCount = paperCitingCount+1;
                                 }
-
-
                             }
                         countryCitingCount = countryCitingCount + paperCitingCount;
-
-
                     }
-
-
                 }
                 Country2Country c2c = new Country2Country();
                 c2c.name = countryList.get(i);
                 c2c.countryCiting.put(countryList.get(j),countryCitingCount);
                 country2CountryList.add(c2c);
-
             }
         }
 
@@ -845,12 +828,12 @@ public class Papers {
 //        OrganizationCiting();
 //        getaimOranization();
 //        aimORGpaperscnt();
-//       ConCiting();
+       ConCiting();
 
 //        AllOrganizationCiting();
 //        WriteAbstract();
-//        buildXMLDocCopy();
-        countryCiting();
+        buildXMLDocCopy();
+//        countryCiting();
     }
 
 

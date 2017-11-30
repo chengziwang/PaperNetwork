@@ -118,9 +118,9 @@ public class Paper {
         }
 
         if (!jsonObject.isNull("RP")) {
-            String[] words = jsonObject.get("RP").toString().split(", |\\.");
+            String[] words = jsonObject.get("RP").toString().split(",|\\.");
             String[] countrySplit = words[words.length - 1].split(" ");
-            country = countrySplit[countrySplit.length - 1];
+            country = countrySplit[countrySplit.length - 1].trim();
         }
     }
 
