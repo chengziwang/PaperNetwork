@@ -649,7 +649,7 @@ public class Papers {
         //写入共引
         try {
             //The following three lines are written to the Excel initialization operation
-            OutputStream os = new FileOutputStream(filePath + "conciting-DI .xlsx");
+            OutputStream os = new FileOutputStream(filePath + "conciting-DI.xlsx");
             SXSSFWorkbook wb = new SXSSFWorkbook();
             SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("conciting");
             SXSSFRow row;
@@ -664,9 +664,9 @@ public class Papers {
                 row.createCell(0).setCellValue(paperList.get(j).getID());
                 for (int q = 0; q < paperListLen; q++) {
                     for (int i = 0; i < conPaperList.size(); i++) {
-                        if (conPaperList.get(i).name.equals(paperList.get(j).getTitle()) ) {
+                        if (conPaperList.get(i).name.getTitle().equals(paperList.get(j).getTitle()) ) {
                             for (Map.Entry<Paper, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
-                                if (entryt.getKey().equals(paperList.get(q).getTitle()) ) {
+                                if (entryt.getKey().getTitle().equals(paperList.get(q).getTitle()) ) {
                                     row.createCell(q+1 ).setCellValue(entryt.getValue());
                                 }
                             }
