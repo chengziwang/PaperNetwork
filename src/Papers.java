@@ -723,7 +723,7 @@ public class Papers {
 
         for (int i = 0; i < conPaperList.size(); i++) {
             for (Map.Entry<Paper, Integer> entryt : conPaperList.get(i).conciting.entrySet()) {
-                if (entryt.getValue() != 0){
+                if (entryt.getValue() != 0&&Integer.toString(conPaperList.get(i).name.getID())!=Integer.toString(entryt.getKey().getID())){
                     Element elements = new Element("edge").setAttribute("source", Integer.toString(conPaperList.get(i).name.getID()));
 
                     elements.setAttribute("target", Integer.toString(entryt.getKey().getID()));
@@ -752,7 +752,8 @@ public class Papers {
         Set<String> countrySet = new HashSet<>();
         List<Country2Country> country2CountryList = new ArrayList<>();
         for (int i = 0; i < paperList.size(); i++) {
-            if (paperList.get(i).getCountry()!=null) {
+            if (paperList.get(i).getCountry()!=null
+                    &&paperList.get(i).getYear() > 2010 && paperList.get(i).getYear() < 2017) {
                 countrySet.add(paperList.get(i).getCountry());
             }
         }
@@ -764,7 +765,9 @@ public class Papers {
                 int countryCitingCount = 0;
                 for (int k = 0; k < paperList.size(); k++) {
                     int paperCitingCount = 0;
-                    if (paperList.get(k).getCountry()!= null&&paperList.get(k).getCountry().equals(countryList.get(i))){
+                    if (paperList.get(k).getCountry()!= null
+                            &&paperList.get(k).getCountry().equals(countryList.get(i))
+                            &&paperList.get(k).getYear() > 2010 && paperList.get(k).getYear() < 2017){
                             for (int m = 0; m < paperList.size(); m++) {
                                 if (paperList.get(m).getCountry()!=null&&paperList.get(m).getCountry().equals(countryList.get(j))
                                                 &&paperList.get(k).getCitationDOI().contains(paperList.get(m).getDOI())){
@@ -784,25 +787,27 @@ public class Papers {
         //写入引用
         try {
             //The following three lines are written to the Excel initialization operation
-            OutputStream os = new FileOutputStream(filePath + "countryciting .xlsx");
+            OutputStream os = new FileOutputStream(filePath + "2011-2016countryciting.xlsx");
             SXSSFWorkbook wb = new SXSSFWorkbook();
-            SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("conciting");
+            SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("countryciting");
             SXSSFRow row;
             row = (SXSSFRow) sheet.createRow(0);
             int paperListLen = countryList.size();
             int top = 100;
             for (int q = 0; q < paperListLen; q++) {
-                row.createCell(q +1).setCellValue(countryList.get(q));
+                row.createCell(q +1).setCellValue(countryList.get(q).toUpperCase());
             }
             for (int j = 0; j < paperListLen; j++) {
-                row = (SXSSFRow) sheet.createRow(j+1 );
-                row.createCell(0).setCellValue(countryList.get(j));
+                row = (SXSSFRow) sheet.createRow(j + 1);
+                row.createCell(0).setCellValue(countryList.get(j).toUpperCase());
+
                 for (int q = 0; q < paperListLen; q++) {
                     for (int i = 0; i < country2CountryList.size(); i++) {
-                        if (country2CountryList.get(i).name!=null&&country2CountryList.get(i).name.equals(countryList.get(j)) ) {
+                        if (country2CountryList.get(i).name != null &&
+                                country2CountryList.get(i).name.equals(countryList.get(j))) {
                             for (Map.Entry<String, Integer> entryt : country2CountryList.get(i).countryCiting.entrySet()) {
-                                if (entryt.getKey()!=null&&entryt.getKey().equals(countryList.get(q)) ) {
-                                    row.createCell(q+1 ).setCellValue(entryt.getValue());
+                                if (entryt.getKey() != null && entryt.getKey().equals(countryList.get(q))) {
+                                    row.createCell(q + 1).setCellValue(entryt.getValue());
                                 }
                             }
                         }
@@ -828,12 +833,14 @@ public class Papers {
 //        OrganizationCiting();
 //        getaimOranization();
 //        aimORGpaperscnt();
-       ConCiting();
+//       ConCiting();
 
 //        AllOrganizationCiting();
 //        WriteAbstract();
-        buildXMLDocCopy();
-//        countryCiting();
+//        buildXMLDocCopy();
+        countryCiting();
+
+
     }
 
 
