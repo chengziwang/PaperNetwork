@@ -105,6 +105,49 @@ public class Papers {
         }
     }
 
+    private List<Paper> readPapersReturn(String path) {
+        List<Paper> paperLists = new ArrayList<>();
+        File file = new File(path);
+        File[] files = file.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (!files[i].exists()) {
+                System.out.println("file" + "\"" + files[i] + "\"" + "is not exist!");
+            }
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(files[i]), "UTF-8"));
+                String lineText;
+                JSONObject jsonObject = new JSONObject();
+                StringBuilder content = new StringBuilder();
+                while ((lineText = bufferedReader.readLine()) != null) {
+                    if (!lineText.startsWith("  ") && lineText != "" && !lineText.startsWith("FN") && !lineText.startsWith("VR")) {
+                        if (content.length() > 2) {
+                            jsonObject.put(content.toString().substring(0, 2), content.toString().substring(3));
+                        }
+                        if (lineText.startsWith("PT")) {
+                            jsonObject = new JSONObject();//reset jsonObject
+                        }
+                        content = new StringBuilder(lineText);
+                        if (lineText.startsWith("ER") && jsonObject.has("DI")) {//ER文件结束
+                            jsonObject.put("classID", i);//按文件排名分类0-N
+                            jsonObject.put("ID", Integer.toString(paperLists.size()));
+                            paperLists.add(new Paper(jsonObject, papersJson.size()));
+                            papersJson.add(jsonObject);
+                            documentObjectList.add(jsonObject);
+                        }
+                    } else if (lineText.startsWith("  ")) {
+                        content.append("||");
+                        content.append(lineText.trim());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return paperLists;
+    }
+
     public void SortWrite() {
         List<String> organizationList = new ArrayList<>();
         for (int i = 0; i < paperList.size(); i++) {//将出现的所有机构加入list
@@ -820,13 +863,96 @@ public class Papers {
             e.printStackTrace();
         }
 
+    }
+
+    public void countryCiting2File(){
+
+        String originalData1="Data/1219-1";
+        String originalData10="Data/1219-10";
+        List<Paper> paperList1 = readPapersReturn(originalData1);
+        List<Paper> paperList10 = readPapersReturn(originalData10);
+
+
+
+
+        Set<String> countrySet = new HashSet<>();
+        List<Country2Country> country2CountryList = new ArrayList<>();
+        for (int i = 0; i < paperList1.size(); i++) {
+            if (paperList1.get(i).getCountry()!=null
+                    &&paperList1.get(i).getYear() > 2010 && paperList1.get(i).getYear() < 2017) {
+                countrySet.add(paperList1.get(i).getCountry());
+            }
+        }
+        List<String> countryList = new ArrayList<>();
+        countryList.addAll(countrySet);
+        for (int i = 0; i < countryList.size(); i++) {
+
+            for (int j = 0; j < countryList.size(); j++) {
+                int countryCitingCount = 0;
+                for (int k = 0; k < paperList1.size(); k++) {
+                    int paperCitingCount = 0;
+                    if (paperList1.get(k).getCountry()!= null
+                            &&paperList1.get(k).getCountry().equals(countryList.get(i))
+                            &&paperList1.get(k).getYear() > 2010 && paperList1.get(k).getYear() < 2017){
+                        for (int m = 0; m < paperList10.size(); m++) {
+                            if (paperList10.get(m).getCountry()!=null&&paperList10.get(m).getCountry().equals(countryList.get(j))
+                                    &&paperList10.get(k).getCitationDOI().contains(paperList10.get(m).getDOI())){
+                                paperCitingCount = paperCitingCount+1;
+                            }
+                        }
+                        countryCitingCount = countryCitingCount + paperCitingCount;
+                    }
+                }
+                Country2Country c2c = new Country2Country();
+                c2c.name = countryList.get(i);
+                c2c.countryCiting.put(countryList.get(j),countryCitingCount);
+                country2CountryList.add(c2c);
+            }
+        }
+
+        //写入引用
+        try {
+            //The following three lines are written to the Excel initialization operation
+            OutputStream os = new FileOutputStream(filePath + "2011-2016countryciting.xlsx");
+            SXSSFWorkbook wb = new SXSSFWorkbook();
+            SXSSFSheet sheet = (SXSSFSheet) wb.createSheet("countryciting");
+            SXSSFRow row;
+            row = (SXSSFRow) sheet.createRow(0);
+            int paperListLen = countryList.size();
+            int top = 100;
+            for (int q = 0; q < paperListLen; q++) {
+                row.createCell(q +1).setCellValue(countryList.get(q).toUpperCase());
+            }
+            for (int j = 0; j < paperListLen; j++) {
+                row = (SXSSFRow) sheet.createRow(j + 1);
+                row.createCell(0).setCellValue(countryList.get(j).toUpperCase());
+
+                for (int q = 0; q < paperListLen; q++) {
+                    for (int i = 0; i < country2CountryList.size(); i++) {
+                        if (country2CountryList.get(i).name != null &&
+                                country2CountryList.get(i).name.equals(countryList.get(j))) {
+                            for (Map.Entry<String, Integer> entryt : country2CountryList.get(i).countryCiting.entrySet()) {
+                                if (entryt.getKey() != null && entryt.getKey().equals(countryList.get(q))) {
+                                    row.createCell(q + 1).setCellValue(entryt.getValue());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            wb.write(os);
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
 
 
+
     public void run() throws IOException, JSONException {
-        readPapers(originalData);
+//        readPapers(originalData);
 
 //        SortWrite();
 //        SortWriteTop();
@@ -838,7 +964,8 @@ public class Papers {
 //        AllOrganizationCiting();
 //        WriteAbstract();
 //        buildXMLDocCopy();
-        countryCiting();
+//        countryCiting();
+        countryCiting2File();
 
 
     }
